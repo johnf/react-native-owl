@@ -104,7 +104,7 @@ export const runHandler = async (args: CliRunOptions) => {
   logger.print(`[OWL - CLI] Starting websocket server.`);
   const webSocketProcess = execa.command('node scripts/websocket-server.js', {
     stdio: 'inherit',
-    cwd: path.join(__dirname, '..', '..'),
+    cwd: path.join(__dirname, '..', '..', '..'),
     env: {
       OWL_DEBUG: String(!!config.debug),
     },
