@@ -76,7 +76,7 @@ export const toMatchBaseline = (
     }
 
     // Create and save the diff image
-    fs.writeFileSync(diffPath, PNG.sync.write(diffImage) as unknown as Uint8Array);
+    fs.writeFileSync(diffPath, PNG.sync.write(diffImage) as unknown as Uint8Array, { encoding: 'binary' });
 
     return {
       message: () =>
