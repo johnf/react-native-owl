@@ -13,6 +13,7 @@ declare global {
         threshold,
       }?: {
         threshold?: number;
+        bottomCrop?: number;
       }) => CustomMatcherResult;
     }
   }
@@ -20,7 +21,7 @@ declare global {
 
 export const toMatchBaseline = (
   latestPath: string,
-  options: { threshold?: number } = { threshold: 0.1 }
+  options: { threshold?: number, bottomCrop?: number } = { threshold: 0.1, bottomCrop: 0 }
 ) => {
   const platform = process.env.OWL_PLATFORM as Platform;
   const screenshotsDir = path.join(path.dirname(latestPath), '..', '..');
@@ -50,20 +51,27 @@ export const toMatchBaseline = (
     const baselineData = fs.readFileSync(baselinePath);
     const baselineImage = PNG.sync.read(baselineData);
 
+    const croppedHeight = baselineImage.height - (options.bottomCrop || 0);
+
+    const croppedBaselineImage = new PNG({ width: baselineImage.width, height: croppedHeight });
+    PNG.bitblt(baselineImage, croppedBaselineImage, 0, 0, baselineImage.width, croppedHeight, 0, 0);
+
     const latestData = fs.readFileSync(latestPath);
     const latestImage = PNG.sync.read(latestData);
+    const croppedLatestImage = new PNG({ width: baselineImage.width, height: croppedHeight });
+    PNG.bitblt(latestImage, croppedLatestImage, 0, 0, baselineImage.width, croppedHeight, 0, 0);
 
     const diffImage = new PNG({
       width: baselineImage.width,
-      height: baselineImage.height,
+      height: croppedHeight,
     });
 
     const diffPixelsCount = pixelmatch(
-      baselineImage.data,
-      latestImage.data,
+      croppedBaselineImage.data,
+      croppedLatestImage.data,
       diffImage.data,
       baselineImage.width,
-      baselineImage.height,
+      croppedHeight,
       { threshold: options?.threshold }
     );
 
